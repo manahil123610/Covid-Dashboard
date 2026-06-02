@@ -67,7 +67,8 @@ st.markdown(f"""
         background-color: {PALETTE["card"]};
         border-right: 1px solid {PALETTE["border"]};
     }}
-    .block-container {{ padding-top: 1rem; padding-bottom: 2rem; }}
+    .block-container {{ padding-top: 3rem; padding-bottom: 2rem; }}
+    header[data-testid="stHeader"] {{ display: none; }}
 
     /* KPI cards */
     .kpi-grid {{
