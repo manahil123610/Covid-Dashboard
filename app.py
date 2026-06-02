@@ -121,13 +121,13 @@ st.markdown(f"""
     }}
 
     /* Section headers */
-    .section-header {{
+     .section-header {
         font-size: 13px;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 2px;
-        color: {PALETTE["subtext"]};
-        border-bottom: 1px solid {PALETTE["border"]};
+        color: {PALETTE["text"]};
+        border-bottom: 1px solid {PALETTE["accent1"]};
         padding-bottom: 8px;
         margin: 32px 0 16px 0;
     }}
