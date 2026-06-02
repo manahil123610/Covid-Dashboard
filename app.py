@@ -121,7 +121,7 @@ st.markdown(f"""
     }}
 
     /* Section headers */
-     .section-header {
+     .section-header {{
         font-size: 13px;
         font-weight: 600;
         text-transform: uppercase;
