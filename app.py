@@ -25,11 +25,11 @@ PALETTE = {
     "bg":       "#0D1117",
     "card":     "#161B22",
     "border":   "#30363D",
-    "accent1":  "#58A6FF",   # blue
-    "accent2":  "#F78166",   # coral/red
-    "accent3":  "#3FB950",   # green
-    "accent4":  "#D2A8FF",   # purple
-    "accent5":  "#FFA657",   # orange
+    "accent1":  "#58A6FF",
+    "accent2":  "#F78166",
+    "accent3":  "#3FB950",
+    "accent4":  "#D2A8FF",
+    "accent5":  "#FFA657",
     "text":     "#E6EDF3",
     "subtext":  "#8B949E",
 }
@@ -68,27 +68,16 @@ st.markdown(f"""
         border-right: 1px solid {PALETTE["border"]};
     }}
     .block-container {{ padding-top: 3rem; padding-bottom: 2rem; }}
-   header[data-testid="stHeader"] {{
-    background-color: transparent !important;
-    height: 0rem !important;
-    min-height: 0rem !important;
-}}
-[data-testid="stToolbar"] {{
-    display: none !important;
-}}
-[data-testid="collapsedControl"] {{
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    color: {PALETTE["text"]} !important;
-    background-color: {PALETTE["card"]} !important;
-    border: 1px solid {PALETTE["border"]} !important;
-    border-radius: 6px !important;
-    position: fixed !important;
-    top: 0.5rem !important;
-    left: 0.5rem !important;
-    z-index: 9999 !important;
-}}
+
+    /* Hide header but keep its space so toggle survives */
+    header[data-testid="stHeader"] {{
+        background-color: transparent !important;
+        height: 0rem !important;
+        min-height: 0rem !important;
+    }}
+    [data-testid="stToolbar"] {{
+        display: none !important;
+    }}
 
     .kpi-grid {{
         display: grid;
@@ -183,18 +172,49 @@ st.markdown(f"""
         border-radius: 10px;
         padding: 16px;
     }}
-    button[kind="header"] {{
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
+
+    /* Custom hamburger toggle button */
+    #sidebar-toggle-btn {{
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        z-index: 999999;
+        background: {PALETTE["card"]};
+        color: {PALETTE["text"]};
+        border: 1px solid {PALETTE["border"]};
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 20px;
+        cursor: pointer;
+        line-height: 1;
+        transition: background 0.2s;
     }}
-    [data-testid="collapsedControl"] {{
-        display: block !important;
-        visibility: visible !important;
-        color: {PALETTE["text"]} !important;
-        background-color: {PALETTE["card"]} !important;
+    #sidebar-toggle-btn:hover {{
+        background: {PALETTE["border"]};
     }}
 </style>
+""", unsafe_allow_html=True)
+
+# ─────────────────────────────────────────────
+# SIDEBAR TOGGLE BUTTON (always visible)
+# ─────────────────────────────────────────────
+st.markdown("""
+<button id="sidebar-toggle-btn" title="Toggle Filters">☰</button>
+<script>
+    const btn = window.parent.document.getElementById('sidebar-toggle-btn');
+    if (btn) {{
+        btn.addEventListener('click', function() {{
+            const collapsed = window.parent.document.querySelector('[data-testid="collapsedControl"]');
+            const sidebar   = window.parent.document.querySelector('[data-testid="stSidebar"]');
+            if (collapsed) {{
+                collapsed.click();
+            }} else if (sidebar) {{
+                // fallback: toggle visibility
+                sidebar.style.display = sidebar.style.display === 'none' ? 'flex' : 'none';
+            }}
+        }});
+    }}
+</script>
 """, unsafe_allow_html=True)
 
 
@@ -238,7 +258,6 @@ with st.sidebar:
 
     st.markdown("#### 🔍 Filters")
 
-    # Date range filter
     date_min = df_raw["dateRep"].min().date()
     date_max = df_raw["dateRep"].max().date()
     date_range = st.date_input(
@@ -252,7 +271,6 @@ with st.sidebar:
     else:
         d_start, d_end = pd.Timestamp(date_min), pd.Timestamp(date_max)
 
-    # Continent filter
     continents_all = sorted(df_raw["continentExp"].dropna().unique())
     continents_sel = st.multiselect(
         "Continent(s)",
@@ -260,7 +278,6 @@ with st.sidebar:
         default=continents_all,
     )
 
-    # Country filter
     countries_pool = sorted(
         df_raw[df_raw["continentExp"].isin(continents_sel)]["countriesAndTerritories"].unique()
     ) if continents_sel else sorted(df_raw["countriesAndTerritories"].unique())
@@ -272,7 +289,6 @@ with st.sidebar:
         placeholder="All (leave blank)"
     )
 
-    # Numerical range slider – cases
     max_cases = int(df_raw.groupby("countriesAndTerritories")["cases"].sum().max())
     case_range = st.slider(
         "Total Cases Range (per country)",
@@ -283,10 +299,7 @@ with st.sidebar:
         format="%d"
     )
 
-    # Text search
     search_text = st.text_input("🔎 Search Country", placeholder="e.g. Germany")
-
-    # Reset button
     reset = st.button("↺  Reset All Filters")
 
 if reset:
@@ -307,7 +320,6 @@ if countries_sel:
 if search_text.strip():
     df = df[df["countriesAndTerritories"].str.contains(search_text.strip(), case=False, na=False)]
 
-# Apply case range filter (on per-country totals)
 country_totals = df.groupby("countriesAndTerritories")["cases"].sum()
 valid_countries = country_totals[
     (country_totals >= case_range[0]) & (country_totals <= case_range[1])
@@ -474,7 +486,6 @@ with col4:
     fig, ax = styled_fig(7, 5)
     n, bins, patches = ax.hist(daily_cases, bins=40, color=PALETTE["accent1"],
                                 edgecolor=PALETTE["bg"], linewidth=0.5, alpha=0.85)
-    # color gradient
     norm = plt.Normalize(n.min(), n.max())
     for count, patch in zip(n, patches):
         patch.set_facecolor(plt.cm.Blues(norm(count) * 0.7 + 0.3))
@@ -510,7 +521,6 @@ with col5:
         ax.scatter(sub["cases"], sub["deaths"],
                    color=cont_color_map[cont], alpha=0.75, s=40,
                    label=cont, edgecolors=PALETTE["bg"], linewidth=0.5)
-    # regression line
     x, y = scatter_df["cases"].values, scatter_df["deaths"].values
     if len(x) > 2:
         m, b = np.polyfit(x, y, 1)
@@ -708,3 +718,4 @@ st.markdown(f"""
     COVID-19 Dashboard · Data Source: ECDC EU/EEA · Filtered {len(df):,} records across {df['countriesAndTerritories'].nunique()} countries
 </div>
 """, unsafe_allow_html=True)
+
