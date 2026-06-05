@@ -68,7 +68,27 @@ st.markdown(f"""
         border-right: 1px solid {PALETTE["border"]};
     }}
     .block-container {{ padding-top: 3rem; padding-bottom: 2rem; }}
-    header[data-testid="stHeader"] {{ display: none; }}
+   header[data-testid="stHeader"] {{
+    background-color: transparent !important;
+    height: 0rem !important;
+    min-height: 0rem !important;
+}}
+[data-testid="stToolbar"] {{
+    display: none !important;
+}}
+[data-testid="collapsedControl"] {{
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    color: {PALETTE["text"]} !important;
+    background-color: {PALETTE["card"]} !important;
+    border: 1px solid {PALETTE["border"]} !important;
+    border-radius: 6px !important;
+    position: fixed !important;
+    top: 0.5rem !important;
+    left: 0.5rem !important;
+    z-index: 9999 !important;
+}}
 
     .kpi-grid {{
         display: grid;
