@@ -9,19 +9,13 @@ import warnings
 warnings.filterwarnings("ignore")
 
 # ─────────────────────────────────────────────
-# SESSION STATE FOR SIDEBAR
-# ─────────────────────────────────────────────
-if "sidebar_expanded" not in st.session_state:
-    st.session_state.sidebar_expanded = True
-
-# ─────────────────────────────────────────────
 # PAGE CONFIG
 # ─────────────────────────────────────────────
 st.set_page_config(
     page_title="COVID-19 Global Dashboard",
     page_icon="🦠",
     layout="wide",
-    initial_sidebar_state="expanded" if st.session_state.sidebar_expanded else "collapsed",
+    initial_sidebar_state="expanded",
 )
 
 # ─────────────────────────────────────────────
@@ -184,24 +178,6 @@ st.markdown(f"""
         transform: translateY(-1px);
     }}
 
-    /* ── Toggle button — override to be compact & blue ── */
-    [data-testid="stButton"] > button {{
-        background: {PALETTE["accent1"]} !important;
-        color: {PALETTE["bg"]} !important;
-        font-size: 24px !important;
-        font-weight: 800 !important;
-        padding: 8px 12px !important;
-        width: auto !important;
-        min-width: 48px !important;
-        border-radius: 8px !important;
-        line-height: 1 !important;
-    }}
-
-    [data-testid="stButton"] > button:hover {{
-        opacity: 0.9 !important;
-        background: {PALETTE["accent1"]} !important;
-    }}
-
     div[data-testid="stMetric"] {{
         background: {PALETTE["card"]};
         border: 1px solid {PALETTE["border"]};
@@ -240,69 +216,68 @@ df_raw = load_data()
 
 
 # ─────────────────────────────────────────────
-# SIDEBAR FILTERS
+# SIDEBAR FILTERS - THIS WILL NOW WORK
 # ─────────────────────────────────────────────
-with st.sidebar:
-    st.markdown(f"""
-        <div style="padding:16px 0 24px 0;">
-            <div style="font-size:20px;font-weight:800;color:{PALETTE['text']};">🦠 COVID-19</div>
-            <div style="font-size:11px;color:{PALETTE['subtext']};
-                        letter-spacing:2px;text-transform:uppercase;">Global Dashboard</div>
-        </div>
-    """, unsafe_allow_html=True)
+st.sidebar.markdown(f"""
+    <div style="padding:16px 0 24px 0;">
+        <div style="font-size:20px;font-weight:800;color:{PALETTE['text']};">🦠 COVID-19</div>
+        <div style="font-size:11px;color:{PALETTE['subtext']};
+                    letter-spacing:2px;text-transform:uppercase;">Global Dashboard</div>
+    </div>
+""", unsafe_allow_html=True)
 
-    st.markdown("#### 🔍 Filters")
+st.sidebar.markdown("#### 🔍 Filters")
 
-    # Date range
-    date_min = df_raw["dateRep"].min().date()
-    date_max = df_raw["dateRep"].max().date()
-    date_range = st.date_input(
-        "Date Range",
-        value=(date_min, date_max),
-        min_value=date_min,
-        max_value=date_max,
-    )
-    if isinstance(date_range, (list, tuple)) and len(date_range) == 2:
-        d_start, d_end = pd.Timestamp(date_range[0]), pd.Timestamp(date_range[1])
-    else:
-        d_start, d_end = pd.Timestamp(date_min), pd.Timestamp(date_max)
+# Date range
+date_min = df_raw["dateRep"].min().date()
+date_max = df_raw["dateRep"].max().date()
+date_range = st.sidebar.date_input(
+    "Date Range",
+    value=(date_min, date_max),
+    min_value=date_min,
+    max_value=date_max,
+)
+if isinstance(date_range, (list, tuple)) and len(date_range) == 2:
+    d_start, d_end = pd.Timestamp(date_range[0]), pd.Timestamp(date_range[1])
+else:
+    d_start, d_end = pd.Timestamp(date_min), pd.Timestamp(date_max)
 
-    # Continent
-    continents_all = sorted(df_raw["continentExp"].dropna().unique())
-    continents_sel = st.multiselect(
-        "Continent(s)",
-        options=continents_all,
-        default=continents_all,
-    )
+# Continent
+continents_all = sorted(df_raw["continentExp"].dropna().unique())
+continents_sel = st.sidebar.multiselect(
+    "Continent(s)",
+    options=continents_all,
+    default=continents_all,
+)
 
-    # Country
-    countries_pool = sorted(
-        df_raw[df_raw["continentExp"].isin(continents_sel)]["countriesAndTerritories"].unique()
-    ) if continents_sel else sorted(df_raw["countriesAndTerritories"].unique())
+# Country
+countries_pool = sorted(
+    df_raw[df_raw["continentExp"].isin(continents_sel)]["countriesAndTerritories"].unique()
+) if continents_sel else sorted(df_raw["countriesAndTerritories"].unique())
 
-    countries_sel = st.multiselect(
-        "Country / Territory",
-        options=countries_pool,
-        default=[],
-        placeholder="All (leave blank)"
-    )
+countries_sel = st.sidebar.multiselect(
+    "Country / Territory",
+    options=countries_pool,
+    default=[],
+    placeholder="All (leave blank)"
+)
 
-    # Cases slider
-    max_cases = int(df_raw.groupby("countriesAndTerritories")["cases"].sum().max())
-    case_range = st.slider(
-        "Total Cases Range (per country)",
-        min_value=0,
-        max_value=max_cases,
-        value=(0, max_cases),
-        step=1000,
-        format="%d"
-    )
+# Cases slider
+max_cases = int(df_raw.groupby("countriesAndTerritories")["cases"].sum().max())
+case_range = st.sidebar.slider(
+    "Total Cases Range (per country)",
+    min_value=0,
+    max_value=max_cases,
+    value=(0, max_cases),
+    step=1000,
+    format="%d"
+)
 
-    # Text search
-    search_text = st.text_input("🔎 Search Country", placeholder="e.g. Germany")
+# Text search
+search_text = st.sidebar.text_input("🔎 Search Country", placeholder="e.g. Germany")
 
-    # Reset
-    reset = st.button("↺  Reset All Filters", use_container_width=True)
+# Reset
+reset = st.sidebar.button("↺  Reset All Filters", use_container_width=True)
 
 if reset:
     st.rerun()
@@ -332,21 +307,13 @@ df = df[df["countriesAndTerritories"].isin(valid_countries)]
 
 
 # ─────────────────────────────────────────────
-# TOGGLE BUTTON  +  DASHBOARD HEADER
+# DASHBOARD HEADER
 # ─────────────────────────────────────────────
-col_btn, col_title = st.columns([0.5, 11.5])
-
-with col_btn:
-    if st.button("☰", key="toggle_btn", help="Toggle Sidebar"):
-        st.session_state.sidebar_expanded = not st.session_state.sidebar_expanded
-        st.rerun()
-
-with col_title:
-    st.markdown("""
-        <div class="dash-title">🦠 COVID-19 Global Analytics Dashboard</div>
-        <div class="dash-sub">ECDC EU/EEA Dataset · Comprehensive epidemiological
-        analysis across countries and time</div>
-    """, unsafe_allow_html=True)
+st.markdown("""
+    <div class="dash-title">🦠 COVID-19 Global Analytics Dashboard</div>
+    <div class="dash-sub">ECDC EU/EEA Dataset · Comprehensive epidemiological
+    analysis across countries and time</div>
+""", unsafe_allow_html=True)
 
 if df.empty:
     st.warning("⚠️ No data matches the current filters. Please adjust your selections.")
