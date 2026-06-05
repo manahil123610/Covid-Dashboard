@@ -70,7 +70,6 @@ st.markdown(f"""
     .block-container {{ padding-top: 3rem; padding-bottom: 2rem; }}
     header[data-testid="stHeader"] {{ display: none; }}
 
-    /* KPI cards */
     .kpi-grid {{
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -107,7 +106,6 @@ st.markdown(f"""
     .kpi-success {{ color: {PALETTE["accent3"]}; }}
     .kpi-purple {{ color: {PALETTE["accent4"]}; }}
 
-    /* Dashboard title */
     .dash-title {{
         font-size: 36px;
         font-weight: 800;
@@ -121,8 +119,7 @@ st.markdown(f"""
         margin-bottom: 24px;
     }}
 
-    /* Section headers */
-     .section-header {{
+    .section-header {{
         font-size: 13px;
         font-weight: 600;
         text-transform: uppercase;
@@ -133,7 +130,6 @@ st.markdown(f"""
         margin: 32px 0 16px 0;
     }}
 
-    /* Streamlit widget overrides */
     .stSelectbox label, .stMultiSelect label,
     .stSlider label, .stTextInput label,
     .stDateInput label {{
@@ -166,6 +162,17 @@ st.markdown(f"""
         border: 1px solid {PALETTE["border"]};
         border-radius: 10px;
         padding: 16px;
+    }}
+    button[kind="header"] {{
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }}
+    [data-testid="collapsedControl"] {{
+        display: block !important;
+        visibility: visible !important;
+        color: {PALETTE["text"]} !important;
+        background-color: {PALETTE["card"]} !important;
     }}
 </style>
 """, unsafe_allow_html=True)
