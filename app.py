@@ -11,8 +11,8 @@ warnings.filterwarnings("ignore")
 # ─────────────────────────────────────────────
 # SESSION STATE FOR SIDEBAR
 # ─────────────────────────────────────────────
-if "sidebar_state" not in st.session_state:
-    st.session_state.sidebar_state = "expanded"
+if "sidebar_expanded" not in st.session_state:
+    st.session_state.sidebar_expanded = True
 
 # ─────────────────────────────────────────────
 # PAGE CONFIG
@@ -21,7 +21,7 @@ st.set_page_config(
     page_title="COVID-19 Global Dashboard",
     page_icon="🦠",
     layout="wide",
-    initial_sidebar_state=st.session_state.sidebar_state,
+    initial_sidebar_state="expanded" if st.session_state.sidebar_expanded else "collapsed",
 )
 
 # ─────────────────────────────────────────────
@@ -185,17 +185,21 @@ st.markdown(f"""
     }}
 
     /* ── Toggle button — override to be compact & blue ── */
-    [data-testid="stButton"]:has(button[kind="secondary"]#toggle_btn) > button,
-    div[data-testid="column"]:first-child .stButton > button {{
+    [data-testid="stButton"] > button {{
         background: {PALETTE["accent1"]} !important;
         color: {PALETTE["bg"]} !important;
-        font-size: 22px !important;
+        font-size: 24px !important;
         font-weight: 800 !important;
-        padding: 2px 14px !important;
+        padding: 8px 12px !important;
         width: auto !important;
         min-width: 48px !important;
         border-radius: 8px !important;
-        line-height: 1.4 !important;
+        line-height: 1 !important;
+    }}
+
+    [data-testid="stButton"] > button:hover {{
+        opacity: 0.9 !important;
+        background: {PALETTE["accent1"]} !important;
     }}
 
     div[data-testid="stMetric"] {{
@@ -298,7 +302,7 @@ with st.sidebar:
     search_text = st.text_input("🔎 Search Country", placeholder="e.g. Germany")
 
     # Reset
-    reset = st.button("↺  Reset All Filters")
+    reset = st.button("↺  Reset All Filters", use_container_width=True)
 
 if reset:
     st.rerun()
@@ -330,15 +334,11 @@ df = df[df["countriesAndTerritories"].isin(valid_countries)]
 # ─────────────────────────────────────────────
 # TOGGLE BUTTON  +  DASHBOARD HEADER
 # ─────────────────────────────────────────────
-col_btn, col_title = st.columns([1, 11])
+col_btn, col_title = st.columns([0.5, 11.5])
 
 with col_btn:
-    if st.button("☰", key="toggle_btn", help="Open / Close Filters"):
-        st.session_state.sidebar_state = (
-            "collapsed"
-            if st.session_state.sidebar_state == "expanded"
-            else "expanded"
-        )
+    if st.button("☰", key="toggle_btn", help="Toggle Sidebar"):
+        st.session_state.sidebar_expanded = not st.session_state.sidebar_expanded
         st.rerun()
 
 with col_title:
@@ -740,4 +740,3 @@ st.markdown(f"""
     Filtered {len(df):,} records across {df['countriesAndTerritories'].nunique()} countries
 </div>
 """, unsafe_allow_html=True)
-
